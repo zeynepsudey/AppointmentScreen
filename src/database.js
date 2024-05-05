@@ -11,17 +11,41 @@ const openDb = async () => {
 const setupDatabaseAsync = async () => {
   const db = await openDb();
   await db.transaction(tx => {
+    // Mevcut tabloyu siler (geliştirme aşamasında kullanılabilir)
+    tx.executeSql("DROP TABLE IF EXISTS Appointments;");
+    // Tabloyu yeniden oluşturur
     tx.executeSql(
-      "CREATE TABLE IF NOT EXISTS Students (id INTEGER PRIMARY KEY AUTOINCREMENT, firstName TEXT, lastName TEXT, email TEXT UNIQUE, password TEXT);"
+      `CREATE TABLE IF NOT EXISTS Students (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        firstName TEXT,
+        lastName TEXT,
+        email TEXT UNIQUE,
+        password TEXT
+      );`
     );
     tx.executeSql(
-      "CREATE TABLE IF NOT EXISTS Teachers (id INTEGER PRIMARY KEY AUTOINCREMENT, firstName TEXT, lastName TEXT, email TEXT UNIQUE, password TEXT);"
+      `CREATE TABLE IF NOT EXISTS Teachers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        firstName TEXT,
+        lastName TEXT,
+        email TEXT UNIQUE,
+        password TEXT
+      );`
     );
     tx.executeSql(
-      "CREATE TABLE IF NOT EXISTS Appointments (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, time TEXT, teacherId INTEGER, FOREIGN KEY(teacherId) REFERENCES Teachers(id));"
+      `CREATE TABLE IF NOT EXISTS Appointments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT,
+        time TEXT,
+        teacherId INTEGER,
+        studentId INTEGER,
+        FOREIGN KEY(teacherId) REFERENCES Teachers(id),
+        FOREIGN KEY(studentId) REFERENCES Students(id)
+      );`
     );
   });
 };
+
 
 const insertTeacher = async (firstName, lastName, email, password) => {
   const db = await openDb();
@@ -46,30 +70,35 @@ const insertStudent = async (firstName, lastName, email, password) => {
 const validateTeacherLogin = async (email, password) => {
   const db = await openDb();
   const results = await db.executeSql("SELECT id FROM Teachers WHERE email = ? AND password = ?", [email, password]);
-  if (results[0].rows.length > 0) {
-    return results[0].rows.item(0).id;
-  }
-  return null;
+  return results[0].rows.length > 0 ? results[0].rows.item(0).id : null;
 };
 
 const validateStudentLogin = async (email, password) => {
   const db = await openDb();
-  const results = await db.executeSql(
-    "SELECT id FROM Students WHERE email = ? AND password = ?",
-    [email, password]
-  );
-  if (results[0].rows.length > 0) {
-    // Giriş başarılı, öğrenci ID'si döndür
-    return results[0].rows.item(0).id;
-  }
-  // Giriş başarısız
-  return null;
+  const results = await db.executeSql("SELECT id FROM Students WHERE email = ? AND password = ?", [email, password]);
+  return results[0].rows.length > 0 ? results[0].rows.item(0).id : null;
 };
 
-
 const fetchAppointments = async (teacherId) => {
+  try {
+    const db = await openDb();
+    const results = await db.executeSql("SELECT * FROM Appointments WHERE teacherId = ?", [teacherId]);
+    let appointments = [];
+    if (results[0].rows.length > 0) {
+      for (let i = 0; i < results[0].rows.length; i++) {
+        appointments.push(results[0].rows.item(i));
+      }
+    }
+    return appointments;
+  } catch (error) {
+    console.error("Fetch appointments failed:", error);
+    throw new Error("Failed to fetch appointments");
+  }
+};
+
+const fetchTeacherAppointments = async (teacherId) => {
   const db = await openDb();
-  const results = await db.executeSql("SELECT * FROM Appointments WHERE teacherId = ?", [teacherId]);
+  const results = await db.executeSql("SELECT id, date, time FROM Appointments WHERE teacherId = ?", [teacherId]);
   let appointments = [];
   if (results[0].rows.length > 0) {
     for (let i = 0; i < results[0].rows.length; i++) {
@@ -79,10 +108,30 @@ const fetchAppointments = async (teacherId) => {
   return appointments;
 };
 
-const addAppointment = async (date, time, teacherId) => {
+
+const fetchTeachers = async () => {
+  const db = await openDb();
+  const results = await db.executeSql("SELECT id, firstName, lastName FROM Teachers");
+  let teachers = [];
+  if (results[0].rows.length > 0) {
+    for (let i = 0; i < results[0].rows.length; i++) {
+      teachers.push(results[0].rows.item(i));
+    }
+  }
+  return teachers;
+};
+
+const addAppointment = async (date, time, teacherId, studentId = null) => {
   const db = await openDb();
   await db.transaction(tx => {
-    tx.executeSql("INSERT INTO Appointments (date, time, teacherId) VALUES (?, ?, ?)", [date, time, teacherId]);
+    tx.executeSql("INSERT INTO Appointments (date, time, teacherId, studentId) VALUES (?, ?, ?, ?)", [date, time, teacherId, studentId]);
+  });
+};
+
+const saveStudentSelection = async (appointmentId, studentId) => {
+  const db = await openDb();
+  await db.transaction(tx => {
+    tx.executeSql("UPDATE Appointments SET studentId = ? WHERE id = ?", [studentId, appointmentId]);
   });
 };
 
@@ -100,6 +149,9 @@ export {
   validateStudentLogin,
   validateTeacherLogin,
   fetchAppointments,
+  fetchTeachers,
   addAppointment,
-  deleteAppointment
+  saveStudentSelection,
+  deleteAppointment,
+  fetchTeacherAppointments
 };

@@ -12,8 +12,17 @@ const TeacherAppScreen = ({ route }) => {
   const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
-    fetchAppointments(teacherId).then(setAppointments);
-  }, []);
+    loadAppointments();  // loadAppointments fonksiyonu burada çağrılıyor
+  }, [teacherId]);
+
+  const loadAppointments = async () => {  // loadAppointments fonksiyonunun tanımı
+    try {
+      const loadedAppointments = await fetchAppointments(teacherId);
+      setAppointments(loadedAppointments);
+    } catch (error) {
+      Alert.alert("Error", "Failed to load appointments: " + error.message);
+    }
+  };
 
   const handleDateChange = (event, date) => {
     setShowDatePicker(false);
@@ -26,17 +35,25 @@ const TeacherAppScreen = ({ route }) => {
   };
 
   const handleSaveAppointment = async () => {
-    const formattedDate = selectedDate.toISOString().substring(0, 10); // "YYYY-MM-DD"
-    const formattedTime = selectedTime.toISOString().substring(11, 19); // "HH:MM:SS"
-    await addAppointment(formattedDate, formattedTime, teacherId);
-    const updatedAppointments = await fetchAppointments(teacherId);
-    setAppointments(updatedAppointments);
+    const formattedDate = selectedDate.toISOString().substring(0, 10);
+    const formattedTime = selectedTime.toISOString().substring(11, 19);
+    try {
+      await addAppointment(formattedDate, formattedTime, teacherId);
+      await loadAppointments();  // Randevuları yeniden yükleyin
+      Alert.alert("Success", "Appointment has been saved successfully.");
+    } catch (error) {
+      Alert.alert("Error", "Failed to save the appointment: " + error.message);
+    }
   };
 
   const handleDeleteAppointment = async (id) => {
-    await deleteAppointment(id);
-    const updatedAppointments = await fetchAppointments(teacherId);
-    setAppointments(updatedAppointments);
+    try {
+      await deleteAppointment(id);
+      await loadAppointments();  // Randevuları yeniden yükleyin
+      Alert.alert("Success", "Appointment has been deleted successfully.");
+    } catch (error) {
+      Alert.alert("Error", "Failed to delete the appointment: " + error.message);
+    }
   };
 
   const renderAppointmentItem = ({ item }) => {

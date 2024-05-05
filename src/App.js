@@ -21,6 +21,7 @@ import StudentAppList from '../src/student/StudentAppList';
 import StudentRegisterScreen from '../src/student/StudentRegisterScreen';
 import StudentSignScreen from '../src/student/StudentSignScreen';
 import StudentAppScreen from '../src/student/StudentAppScreen';
+import StudentSelectScreen from '../src/student/StudentSelectScreen';
 
 const Stack = createStackNavigator();
 
@@ -55,6 +56,7 @@ function App() {
         <Stack.Screen name="StudentRegister" component={StudentRegisterScreen} options={{ title: 'Öğrenci Kayıt' }} />
         <Stack.Screen name="StudentSign" component={StudentSignScreen} options={{ title: '' }} />
         <Stack.Screen name="StudentScreen" component={StudentAppScreen} options={{ title: 'Randevu Al' }} />
+        <Stack.Screen name="StudentSelect" component={StudentSelectScreen} options={{ title: 'Randevu Al' }} />
 
       </Stack.Navigator>
     </NavigationContainer>

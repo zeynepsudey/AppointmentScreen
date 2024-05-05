@@ -1,54 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Button, TextInput } from 'react-native';
-import { fetchAppointments, saveStudentSelection } from '../database';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { fetchTeachers } from '../database';
 
-const StudentAppScreen = () => {
-  const [appointments, setAppointments] = useState([]);
-  const [selectedStudentId, setSelectedStudentId] = useState('');
+const StudentAppScreen = ({ navigation }) => {
+  const [teachers, setTeachers] = useState([]);
 
   useEffect(() => {
-    const loadAppointments = async () => {
-      const fetchedAppointments = await fetchAppointments();
-      setAppointments(fetchedAppointments);
+    const loadTeachers = async () => {
+      const fetchedTeachers = await fetchTeachers();
+      setTeachers(fetchedTeachers);
     };
 
-    loadAppointments();
+    loadTeachers();
   }, []);
-
-  const handleSaveSelection = async (appointmentId) => {
-    if (selectedStudentId) {
-      await saveStudentSelection(appointmentId, selectedStudentId);
-      alert("Seçim kaydedildi");
-      // Randevular listesini yeniden yüklemek yerine yalnızca seçilen randevuyu güncelleyin
-      setAppointments(appointments.map(app => {
-        if (app.id === appointmentId) {
-          return {...app, studentId: selectedStudentId};
-        }
-        return app;
-      }));
-    } else {
-      alert("Lütfen bir öğrenci ID'si giriniz.");
-    }
-  };
-  
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        onChangeText={setSelectedStudentId}
-        value={selectedStudentId}
-        placeholder="Öğrenci ID giriniz"
-        keyboardType="numeric"
-      />
       <FlatList
-        data={appointments}
+        data={teachers}
         renderItem={({ item }) => (
-          <View style={styles.appointmentItem}>
-            <Text>Date: {item.date}</Text>
-            <Text>Time: {item.time}</Text>
-            <Button title="Seç" onPress={() => handleSaveSelection(item.id)} />
-          </View>
+          <TouchableOpacity onPress={() => navigation.navigate('StudentSelect', { teacherId: item.id })}>
+            <View style={styles.teacherItem}>
+              <Text>{item.firstName} {item.lastName}</Text>
+            </View>
+          </TouchableOpacity>
         )}
         keyExtractor={(item) => item.id.toString()}
       />
@@ -63,21 +38,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  appointmentItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  teacherItem: {
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 10,
     marginTop: 10,
-  },
-  input: {
-    height: 40,
-    margin: 12,
-    borderWidth: 1,
-    padding: 10,
-    width: '80%',
+    width: '80%'
   },
 });
 
