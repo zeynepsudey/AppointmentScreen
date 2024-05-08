@@ -1,19 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { fetchAppointments } from '../database';
+import { View, Text, StyleSheet, FlatList, Alert, Button } from 'react-native';
+import { fetchStudentAppointments, deleteStudentAppointment } from '../database';
 
 const StudentAppList = () => {
   const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
-    const loadAppointments = async () => {
-      const fetchedAppointments = await fetchAppointments();
-      const filteredAppointments = fetchedAppointments.filter(app => app.studentId);
-      setAppointments(filteredAppointments);
-    };
-
     loadAppointments();
   }, []);
+
+  const loadAppointments = async () => {
+    const studentId = "YourStudentIdHere"; // Dinamik olarak ayarlanmalı
+    try {
+      const fetchedAppointments = await fetchStudentAppointments(studentId);
+      setAppointments(fetchedAppointments);
+    } catch (error) {
+      Alert.alert('Hata', 'Randevular yüklenirken bir hata oluştu');
+    }
+  };
+
+  const handleDelete = async (appointmentId) => {
+    try {
+      await deleteStudentAppointment(appointmentId);
+      loadAppointments();  // Listeyi yeniden yükle
+      Alert.alert('Başarılı', 'Randevu başarıyla silindi');
+    } catch (error) {
+      Alert.alert('Hata', 'Randevu silinirken bir hata oluştu');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -21,10 +35,12 @@ const StudentAppList = () => {
         data={appointments}
         renderItem={({ item }) => (
           <View style={styles.appointmentItem}>
-            <Text>Date: {item.date}</Text>
-            <Text>Time: {item.time}</Text>
-            <Text>Student ID: {item.studentId}</Text>
-          </View>
+            <Text>Tarih: {item.date}</Text>
+            <Text>Zaman: {item.time}</Text>
+            <Text>Öğretmen: {item.teacherFirstName} {item.teacherLastName}</Text>
+            <View style={styles.button}>
+              <Button title="Alınan Randevuyu Sil" onPress={() => handleDelete(item.id)} />
+          </View></View>
         )}
         keyExtractor={(item) => item.id.toString()}
       />
@@ -37,16 +53,28 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   appointmentItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 10,
-    marginTop: 10,
+    marginVertical: 10,
   },
+  text: {
+    fontSize: 16,
+    color: 'black',
+    marginBottom: 5,
+    width: '100%',
+    textAlign: 'center',
+    numberOfLines: 1,
+  },
+  button: {
+    marginTop: 5,
+  }
 });
 
 export default StudentAppList;

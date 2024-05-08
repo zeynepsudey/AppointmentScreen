@@ -40,9 +40,9 @@ const TeacherAppScreen = ({ route }) => {
     try {
       await addAppointment(formattedDate, formattedTime, teacherId);
       await loadAppointments();  // Randevuları yeniden yükleyin
-      Alert.alert("Success", "Appointment has been saved successfully.");
+      Alert.alert(" ", "Randevu başarıyla kaydedildi.");
     } catch (error) {
-      Alert.alert("Error", "Failed to save the appointment: " + error.message);
+      Alert.alert("Hata", "Randevu kaydedilirken bir hata oluştu.: " + error.message);
     }
   };
 
@@ -50,9 +50,9 @@ const TeacherAppScreen = ({ route }) => {
     try {
       await deleteAppointment(id);
       await loadAppointments();  // Randevuları yeniden yükleyin
-      Alert.alert("Success", "Appointment has been deleted successfully.");
+      Alert.alert("Success", "Randevu başarıyla silindi.");
     } catch (error) {
-      Alert.alert("Error", "Failed to delete the appointment: " + error.message);
+      Alert.alert("Hata", "Randevu kaydedilirken bir hata oluştu.: " + error.message);
     }
   };
 
@@ -62,13 +62,14 @@ const TeacherAppScreen = ({ route }) => {
       <View style={styles.appointmentItem}>
         <Text>{fullDateTime.toLocaleDateString('en-CA')}</Text>
         <Text>{fullDateTime.toLocaleTimeString('it-IT')}</Text>
-        <Button title="Sil" onPress={() => handleDeleteAppointment(item.id)} />
-      </View>
+        <View style={styles.button}><Button title="Sil" onPress={() => handleDeleteAppointment(item.id)} />
+      </View></View>
     );
   };
 
   return (
     <View style={styles.container}>
+
       <Button title="Tarih Seç" onPress={() => setShowDatePicker(true)} />
       <Text>Seçilen Tarih: {selectedDate.toLocaleDateString()}</Text>
       {showDatePicker && (
@@ -78,7 +79,8 @@ const TeacherAppScreen = ({ route }) => {
           onChange={handleDateChange}
         />
       )}
-      <Button title="Saat Seç" onPress={() => setShowTimePicker(true)} />
+
+<View style={styles.button2}><Button title="Saat Seç" onPress={() => setShowTimePicker(true)} /></View>
       <Text>Seçilen Saat: {selectedTime.toLocaleTimeString()}</Text>
       {showTimePicker && (
         <DateTimePicker
@@ -89,7 +91,9 @@ const TeacherAppScreen = ({ route }) => {
           onChange={handleTimeChange}
         />
       )}
-      <Button title="Randevuyu Kaydet" onPress={handleSaveAppointment} />
+
+
+<View style={styles.button2}><Button title="Randevuyu Kaydet" onPress={handleSaveAppointment} /></View>
       <FlatList
         data={appointments}
         renderItem={renderAppointmentItem}
@@ -102,20 +106,36 @@ const TeacherAppScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'center', 
+    alignItems: 'center',     
     padding: 20,
   },
   appointmentItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flex: 1,  // Genişliği esnek hale getir
+    justifyContent: 'center', 
+    alignItems: 'center',     
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 10,
-    marginTop: 10,
-    width: '80%',
+    marginVertical: 10,  // Dikey boşluk
+    marginTop: 20,
+    marginBottom: 0,
+
   },
+  text: {
+    fontSize: 16,  // Yazı boyutu
+    color: 'black',  // Yazı rengi
+    marginBottom: 5,  // Altına boşluk
+    width: '100%',  // Genişlik maksimum
+    textAlign: 'center',  // Metni ortala
+    numberOfLines: 1,  // Sadece bir satır göster, gerekiyorsa "..." kullan
+  },
+  button: {
+    marginTop: 5,
+  },
+  button2: {
+    marginTop: 15,
+  }
 });
 
 export default TeacherAppScreen;

@@ -6,14 +6,18 @@ const TeacherMenuScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
+
+      <View style={styles.button}>
       <Button
         title="Randevularım"
         onPress={() => navigation.navigate('TeacherList', { teacherId })}
-      />
+      /></View>
+
+    <View style={styles.button}>
       <Button 
         title="Randevu Belirle"
         onPress={() => navigation.navigate('TeacherScreen', { teacherId })}
-      />
+      /></View>
     </View>
   );
 };
@@ -23,7 +27,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 20,
   },
+  button: {
+    marginTop: 10,
+  }
 });
 
 export default TeacherMenuScreen;

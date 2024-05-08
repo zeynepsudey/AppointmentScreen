@@ -11,38 +11,9 @@ const openDb = async () => {
 const setupDatabaseAsync = async () => {
   const db = await openDb();
   await db.transaction(tx => {
-    // Mevcut tabloyu siler (geliştirme aşamasında kullanılabilir)
-    tx.executeSql("DROP TABLE IF EXISTS Appointments;");
-    // Tabloyu yeniden oluşturur
-    tx.executeSql(
-      `CREATE TABLE IF NOT EXISTS Students (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        firstName TEXT,
-        lastName TEXT,
-        email TEXT UNIQUE,
-        password TEXT
-      );`
-    );
-    tx.executeSql(
-      `CREATE TABLE IF NOT EXISTS Teachers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        firstName TEXT,
-        lastName TEXT,
-        email TEXT UNIQUE,
-        password TEXT
-      );`
-    );
-    tx.executeSql(
-      `CREATE TABLE IF NOT EXISTS Appointments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT,
-        time TEXT,
-        teacherId INTEGER,
-        studentId INTEGER,
-        FOREIGN KEY(teacherId) REFERENCES Teachers(id),
-        FOREIGN KEY(studentId) REFERENCES Students(id)
-      );`
-    );
+    tx.executeSql("CREATE TABLE IF NOT EXISTS Students (id INTEGER PRIMARY KEY AUTOINCREMENT, firstName TEXT, lastName TEXT, email TEXT UNIQUE, password TEXT);");
+    tx.executeSql("CREATE TABLE IF NOT EXISTS Teachers (id INTEGER PRIMARY KEY AUTOINCREMENT, firstName TEXT, lastName TEXT, email TEXT UNIQUE, password TEXT);");
+    tx.executeSql("CREATE TABLE IF NOT EXISTS Appointments (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, time TEXT, teacherId INTEGER, studentId INTEGER, FOREIGN KEY(teacherId) REFERENCES Teachers(id), FOREIGN KEY(studentId) REFERENCES Students(id));");
   });
 };
 
@@ -80,25 +51,22 @@ const validateStudentLogin = async (email, password) => {
 };
 
 const fetchAppointments = async (teacherId) => {
-  try {
-    const db = await openDb();
-    const results = await db.executeSql("SELECT * FROM Appointments WHERE teacherId = ?", [teacherId]);
-    let appointments = [];
-    if (results[0].rows.length > 0) {
-      for (let i = 0; i < results[0].rows.length; i++) {
-        appointments.push(results[0].rows.item(i));
-      }
+  const db = await openDb();
+  const results = await db.executeSql("SELECT * FROM Appointments WHERE teacherId = ?", [teacherId]);
+  let appointments = [];
+  if (results[0].rows.length > 0) {
+    for (let i = 0; i < results[0].rows.length; i++) {
+      appointments.push(results[0].rows.item(i));
     }
-    return appointments;
-  } catch (error) {
-    console.error("Fetch appointments failed:", error);
-    throw new Error("Failed to fetch appointments");
   }
+  return appointments;
 };
 
 const fetchTeacherAppointments = async (teacherId) => {
   const db = await openDb();
-  const results = await db.executeSql("SELECT id, date, time FROM Appointments WHERE teacherId = ?", [teacherId]);
+  const results = await db.executeSql(
+    "SELECT Appointments.id, Appointments.date, Appointments.time, Students.firstName as studentFirstName, Students.lastName as studentLastName FROM Appointments LEFT JOIN Students ON Appointments.studentId = Students.id WHERE teacherId = ?", [teacherId]
+  );
   let appointments = [];
   if (results[0].rows.length > 0) {
     for (let i = 0; i < results[0].rows.length; i++) {
@@ -109,16 +77,21 @@ const fetchTeacherAppointments = async (teacherId) => {
 };
 
 
-const fetchTeachers = async () => {
+
+const fetchStudentAppointments = async (studentId) => {
   const db = await openDb();
-  const results = await db.executeSql("SELECT id, firstName, lastName FROM Teachers");
-  let teachers = [];
+  const results = await db.executeSql(`
+    SELECT A.id, A.date, A.time, T.firstName AS teacherFirstName, T.lastName AS teacherLastName
+    FROM Appointments AS A
+    JOIN Teachers AS T ON A.teacherId = T.id
+    WHERE A.studentId = ?`, [studentId]);
+  let appointments = [];
   if (results[0].rows.length > 0) {
     for (let i = 0; i < results[0].rows.length; i++) {
-      teachers.push(results[0].rows.item(i));
+      appointments.push(results[0].rows.item(i));
     }
   }
-  return teachers;
+  return appointments;
 };
 
 const addAppointment = async (date, time, teacherId, studentId = null) => {
@@ -135,11 +108,36 @@ const saveStudentSelection = async (appointmentId, studentId) => {
   });
 };
 
+
 const deleteAppointment = async (id) => {
   const db = await openDb();
   await db.transaction(tx => {
     tx.executeSql("DELETE FROM Appointments WHERE id = ?", [id]);
   });
+};
+
+const deleteStudentAppointment = async (appointmentId) => {
+  const db = await openDb();
+  await db.transaction(tx => {
+    tx.executeSql("DELETE FROM Appointments WHERE id = ?", [appointmentId]);
+  });
+};
+
+
+const fetchTeachers = async () => {
+  const db = await openDb();
+  const results = await db.executeSql("SELECT id, firstName, lastName FROM Teachers");
+  let teachers = [];
+  if (results[0].rows.length > 0) {
+    for (let i = 0; i < results[0].rows.length; i++) {
+      teachers.push(results[0].rows.item(i));
+    }
+  }
+  return teachers;
+};
+
+const loadAppointments = async (teacherId) => {
+  return await fetchTeacherAppointments(teacherId);
 };
 
 export {
@@ -153,5 +151,16 @@ export {
   addAppointment,
   saveStudentSelection,
   deleteAppointment,
-  fetchTeacherAppointments
+  fetchTeacherAppointments,
+  fetchStudentAppointments,
+  loadAppointments,
+  deleteStudentAppointment
 };
+
+
+
+
+
+
+
+
