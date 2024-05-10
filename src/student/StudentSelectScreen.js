@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Button, FlatList } from 'react-native';
 import { fetchTeacherAppointments, saveStudentSelection, loadAppointments } from '../database';
@@ -18,7 +19,7 @@ const StudentSelectScreen = ({ route }) => {
   const handleSelectAppointment = async (appointmentId) => {
     const studentId = "YourStudentIdHere";
     await saveStudentSelection(appointmentId, studentId);
-    alert('Randevu seçildi');
+    alert('Randevu seçildi. Uyarı: Son 1 saate kadar iptal edebilirsiniz.');
     loadAppointments();
   };
 

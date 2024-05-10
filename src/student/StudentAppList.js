@@ -29,6 +29,13 @@ const StudentAppList = () => {
     }
   };
 
+  const handleDeleteEnabled = (appointmentDateTime) => {
+    const appointmentTime = new Date(appointmentDateTime);
+    const currentTime = new Date();
+    const differenceInMinutes = (appointmentTime - currentTime) / (1000 * 60);
+    return differenceInMinutes > 60; // Sadece 60 dakikadan fazla zaman varsa silme işlemi etkin olacak
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -39,8 +46,13 @@ const StudentAppList = () => {
             <Text>Zaman: {item.time}</Text>
             <Text>Öğretmen: {item.teacherFirstName} {item.teacherLastName}</Text>
             <View style={styles.button}>
-              <Button title="Alınan Randevuyu Sil" onPress={() => handleDelete(item.id)} />
-          </View></View>
+              <Button
+                title="Alınan Randevuyu Sil"
+                onPress={() => handleDelete(item.id)}
+                disabled={!handleDeleteEnabled(`${item.date} ${item.time}`)} // Silme işlemi etkin mi değil mi kontrolü
+              />
+            </View>
+          </View>
         )}
         keyExtractor={(item) => item.id.toString()}
       />
