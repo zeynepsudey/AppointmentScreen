@@ -111,24 +111,24 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   appointmentItem: {
-    flex: 1,  // Genişliği esnek hale getir
+    flex: 1,  
     justifyContent: 'center', 
     alignItems: 'center',     
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 10,
-    marginVertical: 10,  // Dikey boşluk
+    marginVertical: 10,  
     marginTop: 20,
     marginBottom: 0,
 
   },
   text: {
-    fontSize: 16,  // Yazı boyutu
-    color: 'black',  // Yazı rengi
-    marginBottom: 5,  // Altına boşluk
-    width: '100%',  // Genişlik maksimum
-    textAlign: 'center',  // Metni ortala
-    numberOfLines: 1,  // Sadece bir satır göster, gerekiyorsa "..." kullan
+    fontSize: 16,  
+    color: 'black',  
+    marginBottom: 5,  
+    width: '100%',  
+    textAlign: 'center',  
+    numberOfLines: 1,  
   },
   button: {
     marginTop: 5,

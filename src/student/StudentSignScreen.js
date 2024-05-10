@@ -14,7 +14,7 @@ const StudentSignScreen = ({ navigation }) => {
     <View style={styles.button}>
       <Button 
         title="Giriş Yap"
-        onPress={() => navigation.navigate('StudentLogin')} // Öğrenci giriş ekranına yönlendirme
+        onPress={() => navigation.navigate('StudentLogin')}
       /></View>
     </View>
   );

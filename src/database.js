@@ -77,7 +77,6 @@ const fetchTeacherAppointments = async (teacherId) => {
 };
 
 
-
 const fetchStudentAppointments = async (studentId) => {
   const db = await openDb();
   const results = await db.executeSql(`
